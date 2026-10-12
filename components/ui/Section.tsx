@@ -1,5 +1,4 @@
-import type { ReactNode } from "react";
-import { Reveal } from "@/components/motion/Reveal";
+import type { CSSProperties, ReactNode } from "react";
 
 interface SectionProps {
   id: string;
@@ -11,7 +10,11 @@ interface SectionProps {
   className?: string;
 }
 
-/** A numbered page section: `02 / PROJECTS`, a heading, then the content. */
+/**
+ * A numbered page section: `02 / PROJECTS`, a hairline, a heading, then the
+ * content. On first view the label types in and the hairline draws
+ * (`data-reveal="header"` in globals.css).
+ */
 export function Section({
   id,
   index,
@@ -20,6 +23,8 @@ export function Section({
   children,
   className = "",
 }: SectionProps) {
+  const text = `${index} / ${label}`;
+
   return (
     <section
       id={id}
@@ -27,17 +32,26 @@ export function Section({
       className={`py-20 md:py-28 ${className}`}
     >
       <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
-        <Reveal>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-cobalt">
-            {index} / {label}
-          </p>
+        <div data-reveal="header">
+          <div className="flex items-center gap-4">
+            <p
+              className="section-label shrink-0 font-mono text-xs uppercase tracking-[0.2em] text-cobalt"
+              style={{ "--chars": text.length } as CSSProperties}
+            >
+              {text}
+            </p>
+            <span
+              aria-hidden="true"
+              className="section-rule h-px flex-1 origin-left bg-line"
+            />
+          </div>
           <h2
             id={`${id}-title`}
-            className="mt-4 max-w-3xl font-display text-4xl font-bold tracking-[-0.03em] text-balance md:text-5xl"
+            className="section-title mt-4 max-w-3xl font-display text-4xl font-bold tracking-[-0.03em] text-balance md:text-5xl"
           >
             {title}
           </h2>
-        </Reveal>
+        </div>
         <div className="mt-10 md:mt-14">{children}</div>
       </div>
     </section>

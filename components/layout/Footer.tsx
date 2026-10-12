@@ -20,7 +20,7 @@ export async function Footer() {
         </p>
         <a
           href="#top"
-          className="inline-flex items-center gap-2 font-mono text-xs text-muted transition-colors hover:text-cobalt"
+          className="inline-flex items-center gap-2 font-mono text-xs text-muted hover:text-cobalt"
         >
           Back to top
           <ArrowUp className="size-3.5" aria-hidden="true" />

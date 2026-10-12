@@ -1,4 +1,3 @@
-import { Reveal } from "@/components/motion/Reveal";
 import { Section } from "@/components/ui/Section";
 import { experience } from "@/data/experience";
 
@@ -23,7 +22,6 @@ export function Experience({ index }: { index: string }) {
               aria-hidden="true"
               className="absolute -left-[5px] top-1.5 size-[9px] border border-cobalt bg-paper"
             />
-            <Reveal>
               <p className="font-mono text-xs uppercase tracking-[0.15em] text-cobalt">
                 {entry.start} to {entry.end ?? "Present"}
               </p>
@@ -44,7 +42,6 @@ export function Experience({ index }: { index: string }) {
                   ))}
                 </ul>
               )}
-            </Reveal>
           </li>
         ))}
       </ol>

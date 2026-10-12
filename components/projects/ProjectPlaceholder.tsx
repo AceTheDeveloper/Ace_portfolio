@@ -16,7 +16,7 @@ interface ProjectPlaceholderProps {
   icon: LucideIcon;
 }
 
-/** Stand-in artwork for projects without a screenshot. */
+/** Stand-in artwork for projects without a screenshot. Its two centre lines draw in the first time it is seen. */
 export function ProjectPlaceholder({
   title,
   slug,
@@ -25,10 +25,11 @@ export function ProjectPlaceholder({
   return (
     <div
       aria-hidden="true"
+      data-reveal="draw"
       className="bg-grid-fine absolute inset-0 flex items-center justify-center bg-tint"
     >
-      <span className="absolute inset-x-0 top-1/2 h-px bg-cobalt/15" />
-      <span className="absolute inset-y-0 left-1/2 w-px bg-cobalt/15" />
+      <span className="ph-x absolute inset-x-0 top-1/2 h-px origin-left bg-cobalt/15" />
+      <span className="ph-y absolute inset-y-0 left-1/2 w-px origin-top bg-cobalt/15" />
       <span className="absolute left-3 top-3 flex size-7 items-center justify-center border border-cobalt/30 bg-paper text-cobalt">
         <Icon className="size-3.5" />
       </span>

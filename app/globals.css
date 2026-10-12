@@ -23,10 +23,15 @@
  */
 :root {
   color-scheme: light;
+
+  /* Motion tokens. Entrances decelerate hard; hovers are a plain ease-out. */
+  --ease-entrance: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-hover: ease-out;
+  --t-response: 300ms;
+  --t-reveal: 600ms;
 }
 
 html {
-  scroll-behavior: smooth;
   scroll-padding-top: 5rem;
 }
 
@@ -67,53 +72,446 @@ body {
   background-size: 48px 48px;
 }
 
+/* ------------------------------------------------------------------ */
+/* Static pieces of the motion system (present with or without motion) */
+/* ------------------------------------------------------------------ */
+
+/* A text line that can slide up from behind its own box. */
+.mask {
+  display: block;
+  overflow: hidden;
+  /* Room for ascenders and descenders that tight line heights would clip. */
+  padding-block: 0.1em;
+  margin-block: -0.1em;
+}
+
+.mask > * {
+  display: block;
+}
+
+.mask-inline {
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+/* Status dot. The ping ring only exists while motion is allowed. */
+.status-dot {
+  position: relative;
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+/* Cobalt underline under "Ace" in the hero. */
+.ace-underline {
+  position: relative;
+}
+
+.ace-underline::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.04em;
+  /* Sits just under the baseline; measured from the bottom of the glyph box. */
+  bottom: 0.11em;
+  height: 0.055em;
+  background: var(--color-cobalt);
+  transform-origin: left;
+}
+
+/* Words of a paragraph that reveals line by line. Always inline boxes, so line breaks never change. */
+[data-word] {
+  display: inline-block;
+}
+
+/* Rules of the About title block; each is a real element so it can be drawn by scaling. */
+.tb-x,
+.tb-y {
+  position: absolute;
+  background: var(--color-line);
+}
+
+.tb-x {
+  inset-inline: 0;
+  height: 1px;
+  transform-origin: left;
+}
+
+.tb-y {
+  inset-block: 0;
+  width: 1px;
+  transform-origin: top;
+}
+
 /*
- * Hero name: hidden until GSAP has split it into characters, so the text
- * never flashes in before its reveal. The fallback animation shows it anyway
- * if the script is slow or fails.
+ * Featured carousel. Slides are sized from the container, and the track is
+ * padded by half the leftover width so the first and last slide can centre.
  */
-@keyframes hero-name-fallback {
-  to {
-    opacity: 1;
-  }
+.carousel-track {
+  --slide: min(86cqw, 47.5rem);
+  padding-inline: calc((100cqw - var(--slide)) / 2);
+  scrollbar-width: none;
 }
 
-/* Project cards entering after a filter change or "Show more". */
-@keyframes card-enter {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
+.carousel-track::-webkit-scrollbar {
+  display: none;
 }
 
-.card-enter {
-  animation: card-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) var(--card-delay, 0ms) backwards;
+.carousel-slide {
+  width: var(--slide);
+}
+
+/* Scroll progress line on the nav; its scale is set from JavaScript. */
+.nav-progress {
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion. Everything below only applies when the visitor allows it,   */
+/* so under prefers-reduced-motion every element is simply in its      */
+/* final state. Only transform, opacity, clip-path and                 */
+/* stroke-dashoffset are animated.                                     */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-progress {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .hero-name:not(:has(.split-char)) {
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  @keyframes mask-rise {
+    from {
+      transform: translateY(110%);
+    }
+  }
+
+  @keyframes draw-x {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes draw-stroke {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes ping {
+    75%,
+    100% {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+  }
+
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  .status-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    opacity: 0.7;
+    animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /*
+   * Hero load sequence: plain CSS keyframes, so it needs no JavaScript and
+   * cannot delay first paint. `--i` is the step; steps are 80ms apart and the
+   * whole sequence, underline included, ends at 1.4s.
+   */
+  .load-rise {
+    animation: rise var(--t-reveal) var(--ease-entrance) backwards;
+    animation-delay: calc(var(--i, 0) * 80ms);
+  }
+
+  .load-mask > * {
+    animation: mask-rise 700ms var(--ease-entrance) backwards;
+    animation-delay: calc(var(--i, 0) * 80ms);
+  }
+
+  .load-underline::after {
+    animation: draw-x 500ms var(--ease-entrance) 900ms backwards;
+  }
+
+  /* The hero figure draws itself; every drawn path has pathLength="1". */
+  .fig-draw {
+    stroke-dasharray: 1;
+    animation: draw-stroke 700ms var(--ease-entrance) backwards;
+    animation-delay: var(--d, 0ms);
+  }
+
+  .fig-fade {
+    animation: fade 400ms var(--ease-hover) backwards;
+    animation-delay: var(--d, 0ms);
+  }
+
+  /* Nav */
+  .nav-marker {
+    transition:
+      transform 350ms var(--ease-entrance),
+      opacity 200ms var(--ease-hover);
+  }
+
+  .menu-enter {
+    animation: menu-in 250ms var(--ease-hover);
+  }
+
+  /*
+   * Scroll reveals. The hidden starting state is scoped to `.js`, which an
+   * inline script in the document head adds, so without JavaScript (and for
+   * crawlers) everything is visible. RevealObserver sets `data-revealed` once.
+   */
+  [data-reveal="up"],
+  [data-reveal="stagger"] > * {
+    transition:
+      opacity var(--dur, var(--t-reveal)) var(--ease-entrance),
+      transform var(--dur, var(--t-reveal)) var(--ease-entrance);
+    transition-delay: calc(var(--i, 0) * var(--step, 60ms));
+  }
+
+  .js [data-reveal="up"]:not([data-revealed]),
+  .js [data-reveal="stagger"]:not([data-revealed]) > * {
     opacity: 0;
-    animation: hero-name-fallback 0.3s ease-out 2.5s forwards;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+    transform: translateY(12px);
   }
 
-  .hero-name *,
-  .reveal {
-    opacity: 1 !important;
-    transform: none !important;
-    visibility: visible !important;
+  /* Section header: the mono label types in, its hairline draws, the title rises. */
+  [data-reveal="header"] .section-label {
+    transition: clip-path 400ms steps(var(--chars, 12), end);
   }
 
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  [data-reveal="header"] .section-rule {
+    transition: transform var(--t-reveal) var(--ease-entrance) 150ms;
+  }
+
+  [data-reveal="header"] .section-title {
+    transition:
+      opacity var(--t-reveal) var(--ease-entrance) 200ms,
+      transform var(--t-reveal) var(--ease-entrance) 200ms;
+  }
+
+  .js [data-reveal="header"]:not([data-revealed]) .section-label {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .js [data-reveal="header"]:not([data-revealed]) .section-rule {
+    transform: scaleX(0);
+  }
+
+  .js [data-reveal="header"]:not([data-revealed]) .section-title {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  /* About: the bio rises line by line (RevealObserver numbers the lines). */
+  [data-reveal="lines"] [data-word] {
+    transition:
+      opacity var(--t-reveal) var(--ease-entrance),
+      transform var(--t-reveal) var(--ease-entrance);
+    transition-delay: calc(var(--i, 0) * 60ms);
+  }
+
+  .js [data-reveal="lines"]:not([data-revealed]) [data-word] {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  /* About title block: rules draw first, then the values fade in row by row. */
+  [data-reveal="titleblock"] .tb-x,
+  [data-reveal="titleblock"] .tb-y {
+    transition: transform var(--t-reveal) var(--ease-entrance);
+    transition-delay: calc(var(--i, 0) * 60ms);
+  }
+
+  [data-reveal="titleblock"] .tb-cell {
+    transition: opacity 500ms var(--ease-hover);
+    transition-delay: calc(350ms + var(--i, 0) * 60ms);
+  }
+
+  .js [data-reveal="titleblock"]:not([data-revealed]) .tb-x {
+    transform: scaleX(0);
+  }
+
+  .js [data-reveal="titleblock"]:not([data-revealed]) .tb-y {
+    transform: scaleY(0);
+  }
+
+  .js [data-reveal="titleblock"]:not([data-revealed]) .tb-cell {
+    opacity: 0;
+  }
+
+  /*
+   * "ACE IT" band, linked to scroll. The words start 18vw apart and slightly
+   * faded, meet when the band reaches the middle of the viewport, and stay
+   * there; then the underline draws. Browsers without scroll-driven animations
+   * get the same thing from AceBandScroll, which sets --p and --u.
+   */
+  @keyframes ace-left {
+    from {
+      opacity: 0.35;
+      transform: translateX(-18vw);
+    }
+  }
+
+  @keyframes ace-right {
+    from {
+      opacity: 0.35;
+      transform: translateX(18vw);
+    }
+  }
+
+  @supports (animation-timeline: view()) {
+    .ace-band:not([data-scroll]) {
+      view-timeline: --ace-band block;
+    }
+
+    .ace-band:not([data-scroll]) :is(.ace-word-left, .ace-word-right, .ace-rule) {
+      animation-duration: 1ms; /* ignored by scroll timelines; needed by Firefox */
+      animation-fill-mode: both;
+      animation-timing-function: ease-out;
+      animation-timeline: --ace-band;
+      animation-range: entry 0% cover 50%;
+    }
+
+    .ace-band:not([data-scroll]) .ace-word-left {
+      animation-name: ace-left;
+    }
+
+    .ace-band:not([data-scroll]) .ace-word-right {
+      animation-name: ace-right;
+    }
+
+    .ace-band:not([data-scroll]) .ace-rule {
+      animation-name: draw-x;
+      animation-range: cover 50% cover 60%;
+    }
+  }
+
+  .ace-band[data-scroll] .ace-word-left {
+    opacity: calc(0.35 + 0.65 * var(--p, 1));
+    transform: translateX(calc((1 - var(--p, 1)) * -18vw));
+  }
+
+  .ace-band[data-scroll] .ace-word-right {
+    opacity: calc(0.35 + 0.65 * var(--p, 1));
+    transform: translateX(calc((1 - var(--p, 1)) * 18vw));
+  }
+
+  .ace-band[data-scroll] .ace-rule {
+    transform: scaleX(var(--u, 1));
+  }
+
+  /* Projects: the ruler under the carousel fills as you move. */
+  .carousel-fill {
+    transition: transform var(--t-response) var(--ease-entrance);
+  }
+
+  /* Project placeholders: the two centre lines draw in once. */
+  [data-reveal="draw"] :is(.ph-x, .ph-y) {
+    transition: transform 700ms var(--ease-entrance);
+  }
+
+  .js [data-reveal="draw"]:not([data-revealed]) .ph-x {
+    transform: scaleX(0);
+  }
+
+  .js [data-reveal="draw"]:not([data-revealed]) .ph-y {
+    transform: scaleY(0);
+  }
+
+  /* Activity: the contribution calendar fades in column by column (8ms apart, 700ms in all). */
+  [data-reveal="heatmap"] g {
+    transition: opacity 280ms var(--ease-hover);
+    transition-delay: calc(var(--i, 0) * 8ms);
+  }
+
+  .js [data-reveal="heatmap"]:not([data-revealed]) g {
+    opacity: 0;
+  }
+
+  /*
+   * Contact: the cobalt band wipes in from the left, the headline words rise
+   * out of their masks, then the label row, the copy and the buttons follow.
+   */
+  [data-reveal="wipe"] {
+    transition: clip-path var(--t-reveal) var(--ease-entrance);
+  }
+
+  [data-reveal="wipe"] .wipe-mask > * {
+    transition: transform 700ms var(--ease-entrance);
+    transition-delay: calc(350ms + var(--i, 0) * 70ms);
+  }
+
+  [data-reveal="wipe"] .wipe-rise {
+    transition:
+      opacity var(--t-reveal) var(--ease-entrance),
+      transform var(--t-reveal) var(--ease-entrance);
+    transition-delay: calc(350ms + var(--i, 0) * 70ms);
+  }
+
+  .js [data-reveal="wipe"]:not([data-revealed]) {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  .js [data-reveal="wipe"]:not([data-revealed]) .wipe-mask > * {
+    transform: translateY(110%);
+  }
+
+  .js [data-reveal="wipe"]:not([data-revealed]) .wipe-rise {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  /*
+   * Hover feedback, only where a real hover exists. The card lifts, its corner
+   * marks extend and the arrow nudges; pressing snaps back with no easing.
+   */
+  @media (hover: hover) {
+    .card,
+    .card .crosshair,
+    .card .nudge {
+      transition: transform var(--t-response) var(--ease-hover);
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+    }
+
+    .card:hover .crosshair {
+      transform: scale(1.8);
+    }
+
+    .card:hover .nudge {
+      transform: translate(2px, -2px);
+    }
+
+    .card:active {
+      transform: none;
+      transition-duration: 0s;
+    }
   }
 }

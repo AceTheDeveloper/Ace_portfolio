@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
 const base =
-  "inline-flex items-center justify-center gap-2 border transition-colors duration-200";
+  "inline-flex items-center justify-center gap-2 border";
 
 const variants = {
   primary: "border-cobalt bg-cobalt text-paper hover:border-ink hover:bg-ink",

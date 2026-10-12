@@ -57,19 +57,25 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
+/*
+ * Marks the document as script-enabled before first paint. Scroll reveals only
+ * hide their starting state under `.js`, so the server HTML stays fully
+ * visible without JavaScript. If the reveal code has not started after 4s, the
+ * class is removed again so nothing can stay hidden.
+ */
+const jsFlag = `document.documentElement.classList.add("js");setTimeout(function(){if(!window.__reveal)document.documentElement.classList.remove("js")},4000)`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
       className={`${bricolage.variable} ${hanken.variable} ${jetbrains.variable} antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-dvh">
-        {/* Scroll reveals start hidden and are shown by script. */}
-        <noscript>
-          <style>{`.reveal,.hero-name{visibility:visible!important;opacity:1!important;animation:none!important}`}</style>
-        </noscript>
-        {children}
-      </body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: jsFlag }} />
+      </head>
+      <body className="min-h-dvh">{children}</body>
     </html>
   );
 }

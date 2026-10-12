@@ -58,6 +58,7 @@ export const projects: Project[] = [
     stars: 0,
     pushedAt: "2026-10-12T07:47:05Z",
     featured: false,
+    image: "/projects/h-website.png",
     visible: true,
     relatedSlugs: ["h-carwash-pos", "h-breakfast-to-bar"],
   },
@@ -360,6 +361,7 @@ export const projects: Project[] = [
     stars: 0,
     pushedAt: "2026-01-31T12:53:12Z",
     featured: false,
+    image: "/projects/dalisay-clinic.png",
     visible: true,
   },
   {
@@ -495,7 +497,7 @@ export const projects: Project[] = [
     stars: 0,
     pushedAt: "2025-04-03T10:40:04Z",
     featured: false,
-    visible: true,
+    visible: false, // hidden until the committed .env is removed from the repo
   },
   {
     slug: "websitedemo",
@@ -550,3 +552,15 @@ export const visibleProjects: Project[] = projects
       : 0;
     return byOrder || b.pushedAt.localeCompare(a.pushedAt);
   });
+
+const FEATURED_FALLBACK_COUNT = 6;
+
+/**
+ * The featured row: every project flagged `featured: true`. While none are
+ * flagged, it falls back to the most recently pushed visible projects.
+ */
+export const featuredProjects: Project[] = visibleProjects.some(
+  (project) => project.featured,
+)
+  ? visibleProjects.filter((project) => project.featured)
+  : visibleProjects.slice(0, FEATURED_FALLBACK_COUNT);

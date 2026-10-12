@@ -1,28 +1,37 @@
 import { Suspense } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Nav, type NavItem } from "@/components/layout/Nav";
+import { RevealObserver } from "@/components/motion/RevealObserver";
 import { About } from "@/components/sections/About";
+import { AceItBand } from "@/components/sections/AceItBand";
+import { Activity } from "@/components/sections/Activity";
 import { Contact } from "@/components/sections/Contact";
 import { Experience } from "@/components/sections/Experience";
 import { Hero } from "@/components/sections/Hero";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
-import { StackMarquee } from "@/components/sections/StackMarquee";
 import { experience } from "@/data/experience";
+import { getActivity } from "@/lib/github";
 
-const navItems: NavItem[] = [
-  { id: "about", label: "About" },
-  { id: "projects", label: "Projects" },
-  { id: "skills", label: "Skills" },
-  ...(experience.length > 0 ? [{ id: "experience", label: "Experience" }] : []),
-  { id: "contact", label: "Contact" },
-];
+export default async function Home() {
+  // Cached for an hour; null when GitHub is unreachable, which hides the section.
+  const activity = await getActivity();
 
-/** Section numbers follow the nav, so they stay in step when Experience is hidden. */
-const sectionIndex = (id: string) =>
-  String(navItems.findIndex((item) => item.id === id) + 1).padStart(2, "0");
+  const navItems: NavItem[] = [
+    { id: "about", label: "About" },
+    { id: "projects", label: "Projects" },
+    ...(activity ? [{ id: "activity", label: "Activity" }] : []),
+    { id: "skills", label: "Skills" },
+    ...(experience.length > 0
+      ? [{ id: "experience", label: "Experience" }]
+      : []),
+    { id: "contact", label: "Contact" },
+  ];
 
-export default function Home() {
+  /** Section numbers follow the nav, so they stay in step when a section is hidden. */
+  const sectionIndex = (id: string) =>
+    String(navItems.findIndex((item) => item.id === id) + 1).padStart(2, "0");
+
   return (
     <>
       <a
@@ -37,10 +46,11 @@ export default function Home() {
         {/* Each boundary hydrates on its own, which keeps main-thread tasks short. */}
         <Suspense>
           <About index={sectionIndex("about")} />
-          <StackMarquee />
+          <AceItBand />
         </Suspense>
         <Suspense>
           <Projects index={sectionIndex("projects")} />
+          <Activity index={sectionIndex("activity")} activity={activity} />
         </Suspense>
         <Suspense>
           <Skills index={sectionIndex("skills")} />
@@ -51,6 +61,7 @@ export default function Home() {
         </Suspense>
       </main>
       <Footer />
+      <RevealObserver />
     </>
   );
 }

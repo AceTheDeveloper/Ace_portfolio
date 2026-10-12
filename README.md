@@ -1,6 +1,6 @@
 # Ace portfolio
 
-Single-page portfolio for Arwin Clyde "Ace" Simondac. Next.js (App Router), TypeScript, Tailwind CSS 4, lucide-react, and a few [React Bits](https://reactbits.dev) components.
+Single-page portfolio for Arwin Clyde "Ace" Simondac. Next.js (App Router), TypeScript, Tailwind CSS 4 and lucide-react. No animation library and no backend: the only server work is one cached read of the public GitHub API.
 
 ## Run it
 
@@ -18,36 +18,41 @@ All text and data is in `data/`. No component needs editing for content changes.
 
 | File | What it holds |
 | --- | --- |
-| `data/site.ts` | Name, role, tagline, bio, quick facts, GitHub link, Instagram handle, marquee items |
+| `data/site.ts` | Name, role, tagline, bio, the About title block, GitHub / Instagram / Facebook links, location |
 | `data/projects.ts` | Every project card |
 | `data/skills.ts` | The five skill groups |
+| `data/tech-icons.ts` | Which logo each tech name uses |
 | `data/experience.ts` | Timeline entries (empty for now) |
 
-### Set the Instagram handle
+### Social links and location
 
-In `data/site.ts`, change the first line:
+At the top of `data/site.ts`:
 
 ```ts
-const INSTAGRAM_HANDLE = "YOUR_IG_HANDLE";
+const INSTAGRAM_HANDLE: string = "acee.tsx";
+const FACEBOOK_HANDLE: string = "clyde.simondac.9";
+const LOCATION: string = "";
 ```
+
+Empty a handle and its Contact button and its mention in the Contact copy both disappear. Set `LOCATION` and it appears next to the role label in the hero.
 
 ### Feature a project
 
-In `data/projects.ts`, set `featured: true` on the entry. Featured cards span two columns and sort first. Use `order` to arrange several featured projects (lower comes first):
+In `data/projects.ts`, set `featured: true` on the entry. Featured projects fill the carousel at the top of Projects, span two columns in the grid and sort first. Use `order` to arrange them (lower comes first):
 
 ```ts
 { slug: "h-carwash-pos", /* ... */ featured: true, order: 1 },
 ```
 
-Everything else sorts by `pushedAt`, newest first. The grid shows 9 cards and puts the rest behind "Show more".
+While nothing is flagged, the carousel shows the 6 most recently pushed visible projects. Everything else sorts by `pushedAt`, newest first. The grid shows 9 cards and puts the rest behind "Show more".
 
 ### Hide or show a project
 
-Flip `visible`. Four entries are hidden because the repos have no real content; the reason is in a comment next to each flag.
+Flip `visible`. Hidden entries have the reason in a comment next to the flag. Hidden projects are also kept out of the Activity section.
 
 ### Add a screenshot
 
-1. Save the image as `public/projects/<slug>.png` (16:10 works best, for example 1600x1000).
+1. Save the image as `public/projects/<slug>.png` (16:10 works best, for example 1440x900).
 2. Add `image: "/projects/<slug>.png"` to that project.
 
 Cards without `image` show the blueprint placeholder.
@@ -68,13 +73,25 @@ Add entries to `data/experience.ts`, newest first. The Experience section and it
 },
 ```
 
-### Live links
+### Tech logos
 
-A project gets a "Live" link only when `liveUrl` is set. Dead deployments were left out on purpose; see `docs/TODO.md`.
+Chips in Skills and on project cards show a logo. The artwork is one sprite file, `public/tech-icons.svg`, holding single-colour symbols from [Simple Icons](https://simpleicons.org) (CC0). `data/tech-icons.ts` maps each tech name to a symbol id.
+
+To add a logo, copy the brand's path from simpleicons.org into a new `<symbol id="slug" viewBox="0 0 24 24">` in the sprite, then add `"Tech name": "slug"` to `data/tech-icons.ts`. A tech with no entry gets a generic lucide icon, set in `components/ui/TechIcon.tsx`.
+
+## GitHub activity
+
+The Activity section reads the public GitHub API on the server (`lib/github.ts`) and is cached for an hour.
+
+- Latest commits come from the 6 most recently pushed repos that are visible in `data/projects.ts`. Merge commits are skipped.
+- Stats are the count of those repos and their primary languages.
+- The contribution heatmap needs a token. Set `GITHUB_TOKEN` (read-only, public repositories) as an environment variable locally in `.env.local` or in Vercel. Without it the heatmap is left out.
+- The token is only read on the server and never reaches the browser.
+- If GitHub is unreachable or rate-limits, the whole section and its nav link are left out and the build still succeeds.
 
 ## Design tokens
 
-Colors and fonts are defined once in `app/globals.css` under `@theme`, so `bg-cobalt`, `text-muted`, `border-line`, `font-display` and so on work everywhere.
+Colors and fonts are defined once in `app/globals.css` under `@theme`, so `bg-cobalt`, `text-muted`, `border-line`, `font-display` and so on work everywhere. The site is light only.
 
 | Token | Value |
 | --- | --- |
@@ -88,48 +105,46 @@ Colors and fonts are defined once in `app/globals.css` under `@theme`, so `bg-co
 
 Fonts load through `next/font` in `app/layout.tsx`: Bricolage Grotesque (display), Hanken Grotesk (body), JetBrains Mono (labels). The site uses one weight per family (display 700, body 400, mono 400). Each extra weight adds main-thread work before first layout, so add weights sparingly.
 
-## Animations
+## Motion
 
-Five React Bits components are vendored in `components/reactbits/`. They were installed with:
+All motion rules are in the "Motion" half of `app/globals.css`. The principles:
 
-```bash
-npx shadcn@latest add @react-bits/<Name>-TS-TW
-```
+- Every animation orients, reveals, responds, or is a blueprint signature. Nothing is decorative noise, and nothing loops except the ping on the status dot.
+- Only transform, opacity, clip-path and stroke-dashoffset are animated, so there is no layout shift.
+- The server HTML is the final, visible state. Scroll reveals hide their starting state only under `.js`, a class that an inline script in `app/layout.tsx` adds, so the page is complete without JavaScript.
+- Every motion rule sits inside `@media (prefers-reduced-motion: no-preference)`. Under reduced motion nothing moves. Windows reports reduced motion when Settings > Accessibility > Visual effects > Animation effects is off, so turn that on if you see no animation on your own machine.
+- Hover effects sit inside `@media (hover: hover)`.
 
-`components.json` exists only so that command knows where to put files.
+How a scroll reveal works: a server component adds `data-reveal="..."` to an element, the single `RevealObserver` sets `data-revealed` the first time that element enters the viewport, and CSS transitions do the rest.
 
-| Component | Used for | Loaded |
+| Where | What moves | How |
 | --- | --- | --- |
-| SplitText | Hero name reveal | Own chunk, right after first paint |
-| DotGrid | Cursor-reactive dots behind the hero | Mouse devices only |
-| SpotlightCard | Blue spotlight on project cards | Mouse devices only |
-| ScrollVelocity | Tech-stack strip | When the strip nears the viewport |
-| AnimatedContent | Scroll reveals | Own chunk |
-
-Local changes to the vendored files (each is marked with a "Local change" comment where it applies):
-
-- `SplitText` accepts `children`, so the name can contain the blue "Ace" span.
-- `SplitText` and `AnimatedContent` start with an IntersectionObserver instead of GSAP ScrollTrigger. ScrollTrigger caches scroll positions and went stale whenever the project grid changed height.
-- `ScrollVelocity` no longer hard-codes its text size or a drop shadow.
-
-Under `prefers-reduced-motion` nothing animates: reveals and the name are shown immediately, the strip stays still, and the dot grid is not loaded. Windows reports reduced motion when Settings > Accessibility > Visual effects > Animation effects is off, so turn that on if you see no animation on your own machine.
-
-`components/reactbits/**` is excluded from ESLint because it is third-party code.
+| Hero | Pill, label, name lines, tagline, buttons, underline; the figure draws itself | CSS keyframes on load |
+| Nav | Scroll progress line, sliding active marker, mobile menu | `components/layout/Nav.tsx` |
+| Section headers | Label types in, hairline draws | `data-reveal="header"` |
+| About | Bio rises line by line; title-block rules draw, values fade in | `data-reveal="lines"`, `"titleblock"` |
+| ACE IT band | Words converge with scroll, underline draws | CSS `animation-timeline: view()`, with `AceBandScroll` as the fallback |
+| Skills, commit log | Items stagger in | `data-reveal="stagger"` |
+| Featured carousel | Slides scale and fade by distance from centre | `FeaturedCarousel.tsx` |
+| Project grid | Cards glide to new positions when filtering (FLIP) | `ProjectsGrid.tsx`, Web Animations API |
+| Project cards | Lift, crosshairs extend, arrow nudges on hover | `.card` rules |
+| Contact | Band wipes in, headline rises, buttons lean toward the cursor | `data-reveal="wipe"`, `Magnetic.tsx` |
 
 ## Structure
 
 ```
 app/                 layout, page, global CSS, favicon, Open Graph image
 components/layout/   Nav, Footer
-components/sections/ Hero, About, StackMarquee, Projects, Skills, Experience, Contact
-components/projects/ ProjectsGrid (filters, show more), ProjectCard, placeholder, spotlight
-components/motion/   Wrappers around the React Bits components
-components/ui/       Section, LinkButton, Chip, Crosshairs, brand icons
-components/reactbits/ Vendored React Bits components
+components/sections/ Hero, About, TitleBlock, AceItBand, Projects, Activity, Skills, Experience, Contact
+components/projects/ FeaturedCarousel, FeaturedCard, ProjectsGrid, ProjectCard, placeholder
+components/motion/   RevealObserver, AceBandScroll, Magnetic
+components/ui/       Section, LinkButton, Chip, TechIcon, Crosshairs, brand icons
 data/                Content
-docs/TODO.md         Things still needed
+lib/github.ts        GitHub activity, fetched and cached on the server
+public/              Project screenshots and the tech logo sprite
+docs/TODO.md         Things still needed, and the latest Lighthouse numbers
 ```
 
 ## Deploy
 
-See the Vercel steps in `docs/TODO.md`. No environment variables are needed. The site URL used for Open Graph tags comes from Vercel's `VERCEL_PROJECT_PRODUCTION_URL`, so a custom domain is picked up automatically.
+The repo is connected to Vercel, which redeploys on every push to `main`. `GITHUB_TOKEN` is the only environment variable, and it is optional. The site URL used for Open Graph tags comes from Vercel's `VERCEL_PROJECT_PRODUCTION_URL`, so a custom domain is picked up automatically.

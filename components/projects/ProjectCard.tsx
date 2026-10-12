@@ -1,45 +1,32 @@
 import Image from "next/image";
-import {
-  AppWindow,
-  ArrowUpRight,
-  Box,
-  Gamepad2,
-  Layers,
-  type LucideIcon,
-  Smartphone,
-  Star,
-} from "lucide-react";
+import { ArrowUpRight, Star } from "lucide-react";
 import { GitHubIcon } from "@/components/ui/BrandIcons";
 import { Chip } from "@/components/ui/Chip";
 import { Crosshairs } from "@/components/ui/Crosshairs";
-import type { Project, ProjectCategory } from "@/data/projects";
-import { CardSpotlight } from "./CardSpotlight";
+import type { Project } from "@/data/projects";
+import { categoryIcons } from "./category-icons";
 import { ProjectPlaceholder } from "./ProjectPlaceholder";
-
-const categoryIcons: Record<ProjectCategory, LucideIcon> = {
-  "Full-stack": Layers,
-  Frontend: AppWindow,
-  Mobile: Smartphone,
-  Game: Gamepad2,
-  Other: Box,
-};
 
 const MAX_CHIPS = 4;
 
 const linkClass =
-  "inline-flex items-center gap-1.5 font-mono text-xs text-ink transition-colors hover:text-cobalt";
+  "inline-flex items-center gap-1.5 font-mono text-xs text-ink hover:text-cobalt";
 
+/**
+ * A project in the grid. On hover devices the card lifts 3px, its corner marks
+ * extend and the Live arrow nudges (`.card` in globals.css); the border colour
+ * change is instant.
+ */
 export function ProjectCard({ project }: { project: Project }) {
   const Icon = categoryIcons[project.category];
   const chips = project.stack.slice(0, MAX_CHIPS);
   const extraChips = project.stack.length - chips.length;
 
   return (
-    <article className="group relative h-full transition-transform duration-200 hover:-translate-y-0.5 focus-within:-translate-y-0.5">
+    <article className="card group relative h-full">
       <Crosshairs />
-      <div className="relative isolate flex h-full flex-col border border-line bg-paper transition-colors duration-200 group-focus-within:border-cobalt group-hover:border-cobalt">
-        <CardSpotlight />
-        <div className="relative z-10 aspect-[16/10] shrink-0 overflow-hidden border-b border-line">
+      <div className="flex h-full flex-col border border-line bg-paper group-focus-within:border-cobalt group-hover:border-cobalt">
+        <div className="relative aspect-[16/10] shrink-0 overflow-hidden border-b border-line">
           {project.image ? (
             <Image
               src={project.image}
@@ -61,7 +48,7 @@ export function ProjectCard({ project }: { project: Project }) {
           )}
         </div>
 
-        <div className="relative z-10 flex flex-1 flex-col p-5">
+        <div className="flex flex-1 flex-col p-5">
           <div className="flex items-center justify-between gap-3">
             <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.15em] text-cobalt">
               <Icon className="size-3.5" aria-hidden="true" />
@@ -93,7 +80,7 @@ export function ProjectCard({ project }: { project: Project }) {
           <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Tech stack">
             {chips.map((item) => (
               <li key={item} className="flex">
-                <Chip>{item}</Chip>
+                <Chip tech={item}>{item}</Chip>
               </li>
             ))}
             {extraChips > 0 && (
@@ -126,7 +113,7 @@ export function ProjectCard({ project }: { project: Project }) {
                 aria-label={`${project.title} live site`}
               >
                 Live
-                <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                <ArrowUpRight className="nudge size-3.5" aria-hidden="true" />
               </a>
             )}
           </div>

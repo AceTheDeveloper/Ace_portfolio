@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { GitHubIcon } from "@/components/ui/BrandIcons";
 import { LinkButton } from "@/components/ui/LinkButton";
@@ -10,6 +10,9 @@ export interface NavItem {
   id: string;
   label: string;
 }
+
+/** Horizontal padding of a desktop nav link (`px-3`), so the marker hugs the text. */
+const LINK_INSET = 12;
 
 /** Highlights whichever section currently crosses the middle of the viewport. */
 function useActiveSection(items: NavItem[]) {
@@ -34,9 +37,80 @@ function useActiveSection(items: NavItem[]) {
   return active;
 }
 
+/** Scales the progress line with how far the page is scrolled. One write per frame. */
+function useScrollProgress(ref: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const line = ref.current;
+    if (!line) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      line.style.transform = `scaleX(${progress})`;
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [ref]);
+}
+
+/** Slides one underline to the active link using a transform only. */
+function useSlidingMarker(
+  navRef: RefObject<HTMLElement | null>,
+  markerRef: RefObject<HTMLElement | null>,
+  active: string | null,
+) {
+  const visible = useRef(false);
+
+  useEffect(() => {
+    const place = () => {
+      const marker = markerRef.current;
+      const link = navRef.current?.querySelector<HTMLElement>(
+        '[aria-current="location"]',
+      );
+      if (!marker) return;
+      if (!link) {
+        marker.style.opacity = "0";
+        visible.current = false;
+        return;
+      }
+      const transform = `translateX(${link.offsetLeft + LINK_INSET}px) scaleX(${link.offsetWidth - LINK_INSET * 2})`;
+      if (!visible.current) {
+        // First appearance: jump into place instead of sliding in from the edge.
+        marker.style.transition = "none";
+        marker.style.transform = transform;
+        void marker.offsetWidth;
+        marker.style.transition = "";
+      } else {
+        marker.style.transform = transform;
+      }
+      marker.style.opacity = "1";
+      visible.current = true;
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  }, [navRef, markerRef, active]);
+}
+
 export function Nav({ items }: { items: NavItem[] }) {
   const [open, setOpen] = useState(false);
   const active = useActiveSection(items);
+  const progressRef = useRef<HTMLSpanElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const markerRef = useRef<HTMLSpanElement>(null);
+
+  useScrollProgress(progressRef);
+  useSlidingMarker(navRef, markerRef, active);
 
   useEffect(() => {
     if (!open) return;
@@ -59,7 +133,7 @@ export function Nav({ items }: { items: NavItem[] }) {
           <span className="text-cobalt">.</span>
         </a>
 
-        <nav aria-label="Primary" className="hidden md:block">
+        <nav ref={navRef} aria-label="Primary" className="relative hidden md:block">
           <ul className="flex items-center gap-1">
             {items.map((item) => {
               const isActive = active === item.id;
@@ -68,22 +142,21 @@ export function Nav({ items }: { items: NavItem[] }) {
                   <a
                     href={`#${item.id}`}
                     aria-current={isActive ? "location" : undefined}
-                    className={`relative block px-3 py-2 text-sm transition-colors hover:text-cobalt ${
+                    className={`block px-3 py-2 text-sm hover:text-cobalt ${
                       isActive ? "text-cobalt" : "text-muted"
                     }`}
                   >
                     {item.label}
-                    <span
-                      aria-hidden="true"
-                      className={`absolute inset-x-3 -bottom-[13px] h-0.5 bg-cobalt transition-opacity ${
-                        isActive ? "opacity-100" : "opacity-0"
-                      }`}
-                    />
                   </a>
                 </li>
               );
             })}
           </ul>
+          <span
+            ref={markerRef}
+            aria-hidden="true"
+            className="nav-marker pointer-events-none absolute bottom-0 left-0 h-0.5 w-px origin-left bg-cobalt opacity-0"
+          />
         </nav>
 
         <div className="flex items-center gap-2">
@@ -93,7 +166,7 @@ export function Nav({ items }: { items: NavItem[] }) {
           </LinkButton>
           <button
             type="button"
-            className="inline-flex size-10 items-center justify-center border border-line text-ink transition-colors hover:border-cobalt hover:text-cobalt md:hidden"
+            className="inline-flex size-10 items-center justify-center border border-line text-ink hover:border-cobalt hover:text-cobalt md:hidden"
             aria-expanded={open}
             aria-controls="mobile-menu"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -108,11 +181,17 @@ export function Nav({ items }: { items: NavItem[] }) {
         </div>
       </div>
 
+      <span
+        ref={progressRef}
+        aria-hidden="true"
+        className="nav-progress pointer-events-none absolute inset-x-0 -bottom-px block h-0.5 bg-cobalt"
+      />
+
       <nav
         id="mobile-menu"
         aria-label="Mobile"
         hidden={!open}
-        className="absolute inset-x-0 top-full border-b border-line bg-paper md:hidden"
+        className="menu-enter absolute inset-x-0 top-full border-b border-line bg-paper md:hidden"
       >
         <ul className="mx-auto max-w-[1200px] px-5 py-2">
           {items.map((item, index) => (
