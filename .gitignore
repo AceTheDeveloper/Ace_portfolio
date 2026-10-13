@@ -42,4 +42,4 @@ next-env.d.ts
 
 # generated ad videos
 /brag-output/
-/google-verification/
+# /google-verification/
