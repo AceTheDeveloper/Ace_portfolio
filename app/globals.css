@@ -8,6 +8,9 @@
   --color-muted: #5b6678;
   --color-cobalt: #1f4fff;
   --color-tint: #eaf0ff;
+  /* Solid cobalt surfaces (primary buttons, the Contact band) and the text on them. Same in both themes. */
+  --color-brand: #1f4fff;
+  --color-on-brand: #ffffff;
 }
 
 @theme inline {
@@ -23,6 +26,8 @@
  */
 :root {
   color-scheme: light;
+  --grid-line: rgb(31 79 255 / 0.05);
+  --grid-line-strong: rgb(31 79 255 / 0.1);
 
   /* Motion tokens. Entrances decelerate hard; hovers are a plain ease-out. */
   --ease-entrance: cubic-bezier(0.22, 1, 0.36, 1);
@@ -31,8 +36,48 @@
   --t-reveal: 600ms;
 }
 
+/*
+ * Dark theme: the same blueprint, drawn on navy. It applies when the system
+ * asks for dark and the visitor has not chosen light, or when the visitor has
+ * chosen dark with the toggle (data-theme on <html>). The two blocks must stay
+ * identical. Cobalt is lifted for text and lines so it keeps AA contrast on
+ * navy; solid cobalt surfaces use --color-brand and do not change.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-paper: #0b1220;
+    --color-wash: #0f182b;
+    --color-line: #22304a;
+    --color-ink: #eef2fa;
+    --color-muted: #9aa6bd;
+    --color-cobalt: #7c97ff;
+    --color-tint: #131f3d;
+    --grid-line: rgb(124 151 255 / 0.07);
+    --grid-line-strong: rgb(124 151 255 / 0.12);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #0b1220;
+  --color-wash: #0f182b;
+  --color-line: #22304a;
+  --color-ink: #eef2fa;
+  --color-muted: #9aa6bd;
+  --color-cobalt: #7c97ff;
+  --color-tint: #131f3d;
+  --grid-line: rgb(124 151 255 / 0.07);
+  --grid-line-strong: rgb(124 151 255 / 0.12);
+}
+
 html {
   scroll-padding-top: 5rem;
+}
+
+/* The theme toggle needs JavaScript, so it is not shown without it. */
+html:not(.js) .theme-toggle {
+  display: none;
 }
 
 body {
@@ -42,8 +87,8 @@ body {
 }
 
 ::selection {
-  background: var(--color-cobalt);
-  color: var(--color-paper);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
 }
 
 :focus-visible {
@@ -53,18 +98,24 @@ body {
 
 /* On the cobalt band a blue ring would disappear. */
 .on-cobalt :focus-visible {
-  outline-color: var(--color-paper);
+  outline-color: var(--color-on-brand);
 }
 
-/* Blueprint grids are SVG tiles, so there is no gradient anywhere. */
+/*
+ * Blueprint grids are SVG tiles, so there is no gradient anywhere. The tile is
+ * used as a mask over a flat colour, which lets the line colour follow the
+ * theme. Use these on an empty layer of their own: the mask hides children.
+ */
 .bg-grid {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M.5 48V.5H48' fill='none' stroke='%231F4FFF' stroke-opacity='.05'/%3E%3C/svg%3E");
-  background-size: 48px 48px;
+  background-color: var(--grid-line);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M.5 48V.5H48' fill='none' stroke='%23000'/%3E%3C/svg%3E") repeat 0 0 / 48px 48px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M.5 48V.5H48' fill='none' stroke='%23000'/%3E%3C/svg%3E") repeat 0 0 / 48px 48px;
 }
 
 .bg-grid-fine {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M.5 16V.5H16' fill='none' stroke='%231F4FFF' stroke-opacity='.1'/%3E%3C/svg%3E");
-  background-size: 16px 16px;
+  background-color: var(--grid-line-strong);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M.5 16V.5H16' fill='none' stroke='%23000'/%3E%3C/svg%3E") repeat 0 0 / 16px 16px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M.5 16V.5H16' fill='none' stroke='%23000'/%3E%3C/svg%3E") repeat 0 0 / 16px 16px;
 }
 
 .bg-grid-inverse {
@@ -366,20 +417,21 @@ body {
 
   /*
    * "ACE IT" band, linked to scroll. The words start 18vw apart and slightly
-   * faded, meet when the band reaches the middle of the viewport, and stay
-   * there; then the underline draws. Browsers without scroll-driven animations
+   * faded (0.7, the lowest that keeps large-text contrast in both themes),
+   * meet when the band reaches the middle of the viewport, and stay there;
+   * then the underline draws. Browsers without scroll-driven animations
    * get the same thing from AceBandScroll, which sets --p and --u.
    */
   @keyframes ace-left {
     from {
-      opacity: 0.35;
+      opacity: 0.7;
       transform: translateX(-18vw);
     }
   }
 
   @keyframes ace-right {
     from {
-      opacity: 0.35;
+      opacity: 0.7;
       transform: translateX(18vw);
     }
   }
@@ -412,12 +464,12 @@ body {
   }
 
   .ace-band[data-scroll] .ace-word-left {
-    opacity: calc(0.35 + 0.65 * var(--p, 1));
+    opacity: calc(0.7 + 0.3 * var(--p, 1));
     transform: translateX(calc((1 - var(--p, 1)) * -18vw));
   }
 
   .ace-band[data-scroll] .ace-word-right {
-    opacity: calc(0.35 + 0.65 * var(--p, 1));
+    opacity: calc(0.7 + 0.3 * var(--p, 1));
     transform: translateX(calc((1 - var(--p, 1)) * 18vw));
   }
 

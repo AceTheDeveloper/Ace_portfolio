@@ -56,8 +56,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
-  colorScheme: "light",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+  ],
+  colorScheme: "light dark",
 };
 
 /*
@@ -65,8 +68,11 @@ export const viewport: Viewport = {
  * hide their starting state under `.js`, so the server HTML stays fully
  * visible without JavaScript. If the reveal code has not started after 4s, the
  * class is removed again so nothing can stay hidden.
+ *
+ * It also applies a saved theme choice (see ThemeToggle) before first paint,
+ * so a visitor who picked light or dark never sees the other one flash.
  */
-const jsFlag = `document.documentElement.classList.add("js");setTimeout(function(){if(!window.__reveal)document.documentElement.classList.remove("js")},4000)`;
+const jsFlag = `document.documentElement.classList.add("js");try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}setTimeout(function(){if(!window.__reveal)document.documentElement.classList.remove("js")},4000)`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

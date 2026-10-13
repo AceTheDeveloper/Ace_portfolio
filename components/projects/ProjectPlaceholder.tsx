@@ -26,8 +26,9 @@ export function ProjectPlaceholder({
     <div
       aria-hidden="true"
       data-reveal="draw"
-      className="bg-grid-fine absolute inset-0 flex items-center justify-center bg-tint"
+      className="absolute inset-0 flex items-center justify-center bg-tint"
     >
+      <span className="bg-grid-fine absolute inset-0" />
       <span className="ph-x absolute inset-x-0 top-1/2 h-px origin-left bg-cobalt/15" />
       <span className="ph-y absolute inset-y-0 left-1/2 w-px origin-top bg-cobalt/15" />
       <span className="absolute left-3 top-3 flex size-7 items-center justify-center border border-cobalt/30 bg-paper text-cobalt">
@@ -36,7 +37,7 @@ export function ProjectPlaceholder({
       <span className="relative bg-tint px-3 font-display text-5xl font-bold tracking-[-0.04em] text-cobalt md:text-6xl">
         {monogram(title)}
       </span>
-      <span className="absolute bottom-3 left-3 right-3 truncate font-mono text-[10px] uppercase tracking-[0.15em] text-cobalt">
+      <span className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] truncate border border-cobalt/30 bg-paper px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-cobalt">
         {slug}
       </span>
     </div>

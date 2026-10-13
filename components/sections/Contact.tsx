@@ -40,7 +40,7 @@ export function Contact({ index }: { index: string }) {
       id="contact"
       aria-labelledby="contact-title"
       data-reveal="wipe"
-      className="on-cobalt relative overflow-hidden bg-cobalt text-paper"
+      className="on-cobalt relative overflow-hidden bg-brand text-on-brand"
     >
       <div aria-hidden="true" className="bg-grid-inverse absolute inset-0" />
 
@@ -52,7 +52,7 @@ export function Contact({ index }: { index: string }) {
           <p className="font-mono text-xs uppercase tracking-[0.2em]">
             {index} / Contact
           </p>
-          <p className="inline-flex items-center gap-3 border border-paper/40 px-3 py-2 font-mono text-xs uppercase tracking-[0.15em]">
+          <p className="inline-flex items-center gap-3 border border-on-brand/40 px-3 py-2 font-mono text-xs uppercase tracking-[0.15em]">
             <span aria-hidden="true" className="status-dot" />
             {site.status}
           </p>
@@ -83,7 +83,7 @@ export function Contact({ index }: { index: string }) {
           className="wipe-rise relative mt-12 inline-flex w-full flex-col gap-3 sm:w-auto sm:flex-row"
           style={step(5)}
         >
-          <Crosshairs className="text-paper" />
+          <Crosshairs className="text-on-brand" />
           {channels.map(({ name, url, Icon }, position) => (
             <Magnetic key={name} className="w-full sm:w-auto">
               <LinkButton

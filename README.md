@@ -98,7 +98,7 @@ The Activity section reads the public GitHub API on the server (`lib/github.ts`)
 
 ## Design tokens
 
-Colors and fonts are defined once in `app/globals.css` under `@theme`, so `bg-cobalt`, `text-muted`, `border-line`, `font-display` and so on work everywhere. The site is light only.
+Colors and fonts are defined once in `app/globals.css` under `@theme`, so `bg-cobalt`, `text-muted`, `border-line`, `font-display` and so on work everywhere. The values below are the light theme.
 
 | Token | Value |
 | --- | --- |
@@ -109,6 +109,14 @@ Colors and fonts are defined once in `app/globals.css` under `@theme`, so `bg-co
 | muted | `#5B6678` |
 | cobalt | `#1F4FFF` |
 | tint | `#EAF0FF` |
+
+### Light and dark
+
+The site follows the visitor's system theme by default. The button in the nav cycles system, light, dark; the choice is saved in `localStorage` and applied before first paint by the inline script in `app/layout.tsx`, so there is no flash on reload. Without JavaScript the toggle is hidden and the system theme applies.
+
+Dark values live in `app/globals.css` in two blocks that must stay identical: one for a dark system (`prefers-color-scheme`) and one for a forced choice (`data-theme="dark"`). To retune dark mode, change both.
+
+Two tokens do not change with the theme: `brand` (solid cobalt surfaces such as the primary button and the Contact band) and `on-brand` (the white text on them). Use `bg-brand text-on-brand` for anything filled with cobalt, and `text-cobalt` / `border-cobalt` for accents, which are lifted to a lighter blue in dark mode so they keep AA contrast.
 
 Fonts load through `next/font` in `app/layout.tsx`: Bricolage Grotesque (display), Hanken Grotesk (body), JetBrains Mono (labels). The site uses one weight per family (display 700, body 400, mono 400). Each extra weight adds main-thread work before first layout, so add weights sparingly.
 
@@ -141,7 +149,7 @@ How a scroll reveal works: a server component adds `data-reveal="..."` to an ele
 
 ```
 app/                 layout, page, global CSS, favicon, Open Graph image
-components/layout/   Nav, Footer
+components/layout/   Nav, ThemeToggle, Footer
 components/sections/ Hero, About, TitleBlock, AceItBand, Projects, Services, Activity, Skills, Experience, Contact
 components/projects/ FeaturedCarousel, FeaturedCard, ProjectsGrid, ProjectCard, placeholder
 components/motion/   RevealObserver, AceBandScroll, Magnetic

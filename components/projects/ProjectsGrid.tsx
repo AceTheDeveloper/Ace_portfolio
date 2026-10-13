@@ -118,13 +118,13 @@ export function ProjectsGrid({ items }: { items: ProjectGridItem[] }) {
               }}
               className={`inline-flex h-10 items-center gap-2 border px-4 text-sm ${
                 selected
-                  ? "border-cobalt bg-cobalt text-paper"
+                  ? "border-brand bg-brand text-on-brand"
                   : "border-line bg-paper text-ink hover:border-cobalt hover:text-cobalt"
               }`}
             >
               {name}
               <span
-                className={`font-mono text-[11px] ${selected ? "text-paper" : "text-muted"}`}
+                className={`font-mono text-[11px] ${selected ? "text-on-brand" : "text-muted"}`}
               >
                 {count}
               </span>

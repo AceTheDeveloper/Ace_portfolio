@@ -1,6 +1,6 @@
 # TODO
 
-Motion is back, light only. The page animates on load, on scroll and on hover, shows everything in its final state under `prefers-reduced-motion`, and is fully visible with JavaScript off. There is no dark theme.
+The page animates on load, on scroll and on hover, shows everything in its final state under `prefers-reduced-motion`, and is fully visible with JavaScript off. It follows the system theme by default, with a toggle in the nav for light or dark.
 
 ## Before deploying
 

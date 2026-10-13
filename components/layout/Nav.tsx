@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import { GitHubIcon } from "@/components/ui/BrandIcons";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { site } from "@/data/site";
+import { ThemeToggle } from "./ThemeToggle";
 
 export interface NavItem {
   id: string;
@@ -160,6 +161,7 @@ export function Nav({ items }: { items: NavItem[] }) {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <LinkButton href={site.githubUrl} external size="sm">
             <GitHubIcon className="size-4" />
             GitHub

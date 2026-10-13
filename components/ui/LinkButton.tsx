@@ -4,11 +4,12 @@ const base =
   "inline-flex items-center justify-center gap-2 border";
 
 const variants = {
-  primary: "border-cobalt bg-cobalt text-paper hover:border-ink hover:bg-ink",
+  primary:
+    "border-brand bg-brand text-on-brand hover:border-ink hover:bg-ink hover:text-paper",
   outline: "border-ink bg-paper text-ink hover:border-cobalt hover:text-cobalt",
-  inverse: "border-paper bg-paper text-cobalt hover:bg-tint",
+  inverse: "border-on-brand bg-on-brand text-brand hover:bg-on-brand/90",
   "inverse-outline":
-    "border-paper text-paper hover:bg-paper hover:text-cobalt",
+    "border-on-brand text-on-brand hover:bg-on-brand hover:text-brand",
 } as const;
 
 const sizes = {
