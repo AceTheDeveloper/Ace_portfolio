@@ -5,7 +5,7 @@
  */
 const INSTAGRAM_HANDLE: string = "acee.tsx";
 const FACEBOOK_HANDLE: string = "clyde.simondac.9";
-const LOCATION: string = "";
+const LOCATION: string = "Iloilo City";
 
 export const site = {
   fullName: "Arwin Clyde B. Simondac",

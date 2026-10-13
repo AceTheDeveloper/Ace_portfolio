@@ -20,6 +20,7 @@ All text and data is in `data/`. No component needs editing for content changes.
 | --- | --- |
 | `data/site.ts` | Name, role, tagline, bio, the About title block, GitHub / Instagram / Facebook links, location |
 | `data/projects.ts` | Every project card |
+| `data/services.ts` | The service cards |
 | `data/skills.ts` | The five skill groups |
 | `data/tech-icons.ts` | Which logo each tech name uses |
 | `data/experience.ts` | Timeline entries (empty for now) |
@@ -72,6 +73,12 @@ Add entries to `data/experience.ts`, newest first. The Experience section and it
   points: ["Optional bullet", "Another bullet"],
 },
 ```
+
+### Services
+
+Each card in `data/services.ts` has a title, a one-line summary and `projectSlugs`, the projects named and linked as "Real work". Its stack chips are read from those projects, so they stay true as the project data changes. A slug that is missing or hidden in `data/projects.ts` is dropped automatically.
+
+For work that should not be named (the client POS systems), leave `projectSlugs` empty, list `features` to show instead, and set `stackFrom` to the slugs whose stack should feed the chips. Keep the cards free of prices, guarantees and client counts.
 
 ### Tech logos
 
@@ -135,7 +142,7 @@ How a scroll reveal works: a server component adds `data-reveal="..."` to an ele
 ```
 app/                 layout, page, global CSS, favicon, Open Graph image
 components/layout/   Nav, Footer
-components/sections/ Hero, About, TitleBlock, AceItBand, Projects, Activity, Skills, Experience, Contact
+components/sections/ Hero, About, TitleBlock, AceItBand, Projects, Services, Activity, Skills, Experience, Contact
 components/projects/ FeaturedCarousel, FeaturedCard, ProjectsGrid, ProjectCard, placeholder
 components/motion/   RevealObserver, AceBandScroll, Magnetic
 components/ui/       Section, LinkButton, Chip, TechIcon, Crosshairs, brand icons

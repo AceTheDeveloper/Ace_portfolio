@@ -9,6 +9,7 @@ import { Contact } from "@/components/sections/Contact";
 import { Experience } from "@/components/sections/Experience";
 import { Hero } from "@/components/sections/Hero";
 import { Projects } from "@/components/sections/Projects";
+import { Services } from "@/components/sections/Services";
 import { Skills } from "@/components/sections/Skills";
 import { experience } from "@/data/experience";
 import { site } from "@/data/site";
@@ -24,6 +25,9 @@ const personSchema = {
   jobTitle: site.role,
   description: site.tagline,
   url: siteUrl,
+  ...(site.location
+    ? { address: { "@type": "PostalAddress", addressLocality: site.location } }
+    : {}),
   sameAs: [site.githubUrl, site.instagramUrl, site.facebookUrl].filter(Boolean),
 };
 
@@ -34,6 +38,7 @@ export default async function Home() {
   const navItems: NavItem[] = [
     { id: "about", label: "About" },
     { id: "projects", label: "Projects" },
+    { id: "services", label: "Services" },
     ...(activity ? [{ id: "activity", label: "Activity" }] : []),
     { id: "skills", label: "Skills" },
     ...(experience.length > 0
@@ -64,6 +69,7 @@ export default async function Home() {
         </Suspense>
         <Suspense>
           <Projects index={sectionIndex("projects")} />
+          <Services index={sectionIndex("services")} />
           <Activity index={sectionIndex("activity")} activity={activity} />
         </Suspense>
         <Suspense>

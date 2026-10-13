@@ -27,7 +27,7 @@ const jetbrains = JetBrains_Mono({
 });
 
 const title = `${site.firstName} “${site.nickname}” ${site.lastName} | ${site.role}`;
-const description = `${site.fullName} (“${site.nickname}”) is a software developer. ${site.tagline}`;
+const description = `${site.fullName} (“${site.nickname}”) is a software developer${site.location ? ` in ${site.location}` : ""}. ${site.tagline}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
