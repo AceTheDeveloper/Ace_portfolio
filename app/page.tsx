@@ -11,7 +11,21 @@ import { Hero } from "@/components/sections/Hero";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
 import { experience } from "@/data/experience";
+import { site } from "@/data/site";
 import { getActivity } from "@/lib/github";
+import { siteUrl } from "@/lib/site-url";
+
+/** Structured data so search engines can connect the name, the site and the profiles. */
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: site.fullName,
+  alternateName: [`${site.nickname} Simondac`, `${site.firstName} ${site.lastName}`],
+  jobTitle: site.role,
+  description: site.tagline,
+  url: siteUrl,
+  sameAs: [site.githubUrl, site.instagramUrl, site.facebookUrl].filter(Boolean),
+};
 
 export default async function Home() {
   // Cached for an hour; null when GitHub is unreachable, which hides the section.
@@ -62,6 +76,10 @@ export default async function Home() {
       </main>
       <Footer />
       <RevealObserver />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
     </>
   );
 }

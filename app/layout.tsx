@@ -5,6 +5,7 @@ import {
   JetBrains_Mono,
 } from "next/font/google";
 import { site } from "@/data/site";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -25,30 +26,32 @@ const jetbrains = JetBrains_Mono({
   display: "swap",
 });
 
-const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
-
 const title = `${site.firstName} “${site.nickname}” ${site.lastName} | ${site.role}`;
+const description = `${site.fullName} (“${site.nickname}”) is a software developer. ${site.tagline}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
-  description: site.tagline,
+  description,
+  applicationName: `${site.nickname} Simondac`,
+  creator: site.fullName,
   authors: [{ name: site.fullName, url: site.githubUrl }],
   alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
+  // Google Search Console ownership check. Keep it, or the property loses verification.
+  verification: { google: "EusYmgDL2NNmCKsiyXLDCFn7D-x7olDR6HCfV3_WzeA" },
   openGraph: {
     type: "website",
     url: "/",
     title,
-    description: site.tagline,
+    description,
     siteName: `${site.nickname} Simondac`,
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
     title,
-    description: site.tagline,
+    description,
   },
 };
 
